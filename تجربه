@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جدول الاختبارات النهائية - جامعة القصيم</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- Base Variables and Resets --- */
+        :root {
+            --bg-color: #1f1f1f;        /* Slightly lighter dark background */
+            --card-bg: #2d2d2d;       /* Card background */
+            --border-color: #4a4a4a;   /* Softer border */
+            --text-color: #e6e6e6;    /* Slightly brighter text */
+            --text-muted: #a0a0a0;    /* Muted text/labels */
+            --header-color: #ffffff;
+            --primary-color: #a78bfa; /* Softer Purple */
+            --secondary-color: #2dd4bf; /* Softer Teal */
+            --focus-ring-color: rgba(167, 139, 250, 0.5);
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --inprogress-color: #facc15; /* Amber/Yellow */
+            --finished-color: #737373; /* Neutral Grey */
+            --button-hover-bg: #3f3f3f;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            --transition-speed: 0.3s;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 100%; /* Base font size */ }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Tajawal', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.7;
+            padding: 1rem;
+            min-height: 100vh;
+        }
+        img, svg { display: block; max-width: 100%; }
+
+        /* --- Layout & Container --- */
+        .container {
+            max-width: 850px;
+            margin: 2rem auto;
+            padding: clamp(1.5rem, 5vw, 2.5rem); /* Responsive padding */
+            background-color: transparent; /* Let body background show */
+        }
+
+        /* --- Typography --- */
+        h1, h2, h3 { color: var(--header-color); text-align: center; line-height: 1.3; }
+        h1 { font-size: clamp(1.8rem, 5vw, 2.2rem); margin-bottom: 0.5rem; font-weight: 700; }
+        h2 { font-size: clamp(1.2rem, 4vw, 1.4rem); color: var(--text-muted); margin-bottom: 2.5rem; font-weight: 500; }
+        h3 { font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1.5rem; font-weight: 500; }
+        label { font-weight: 500; color: var(--primary-color); }
+
+        /* --- Selection Area --- */
+        .selection-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2rem; /* Space between level and department selectors */
+            margin-bottom: 2.5rem;
+        }
+        .selector-group { width: 100%; max-width: 400px; text-align: center; }
+        .selector-group label { display: block; margin-bottom: 0.75rem; }
+
+        /* --- Select Dropdown --- */
+        .custom-select-wrapper { position: relative; }
+        #levelSelect {
+            width: 100%; padding: 0.8rem 1.2rem; padding-left: 3rem; /* Space for arrow */
+            font-size: 1rem; font-family: inherit; color: var(--text-color);
+            background-color: var(--card-bg); border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-md); cursor: pointer; appearance: none;
+            transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+        }
+        .custom-select-wrapper::after { /* Custom Arrow */
+            content: ''; border: solid var(--text-muted); border-width: 0 2px 2px 0;
+            display: inline-block; padding: 4px; transform: rotate(45deg); -webkit-transform: rotate(45deg);
+            position: absolute; left: 1.2rem; top: 50%; transform: translateY(-70%) rotate(45deg); /* Adjust vertical position */
+            pointer-events: none; transition: border-color var(--transition-speed) ease;
+        }
+        #levelSelect:focus {
+            outline: none; border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px var(--focus-ring-color);
+        }
+        #levelSelect:hover { border-color: var(--primary-color); }
+        .custom-select-wrapper:hover::after { border-color: var(--primary-color); }
+
+        /* --- Department Selector --- */
+        #departmentSelectorContainer {
+            display: none; width: 100%; background-color: var(--card-bg);
+            padding: 1.5rem clamp(1rem, 5vw, 2rem); border-radius: var(--border-radius-lg);
+            box-shadow: 0 5px 15px var(--shadow-color);
+            opacity: 0; transform: scale(0.98) translateY(10px);
+            transition: opacity calc(var(--transition-speed) * 1.2) ease, transform calc(var(--transition-speed) * 1.2) ease;
+        }
+        #departmentSelectorContainer.visible { display: block; opacity: 1; transform: scale(1) translateY(0); }
+        .department-buttons { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+        .department-button {
+            background-color: var(--bg-color); color: var(--text-color); border: 1px solid var(--border-color);
+            padding: 0.7rem 1.4rem; font-size: 0.95rem; font-family: inherit; font-weight: 500;
+            border-radius: var(--border-radius-md); cursor: pointer; min-width: 130px; text-align: center;
+            transition: all var(--transition-speed) ease;
+        }
+        .department-button:hover { background-color: var(--button-hover-bg); border-color: var(--primary-color); transform: translateY(-2px); }
+        .department-button:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px var(--focus-ring-color); }
+
+        /* --- Schedule Display Area --- */
+        #scheduleContainer {
+            opacity: 0; transform: translateY(15px);
+            transition: opacity calc(var(--transition-speed) * 1.5) ease, transform calc(var(--transition-speed) * 1.5) ease;
+        }
+        #scheduleContainer.loaded { opacity: 1; transform: translateY(0); }
+
+        /* --- Exam Card Styling --- */
+        .exam-card {
+            background-color: var(--card-bg); border-radius: var(--border-radius-lg);
+            padding: 1.5rem; margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px var(--shadow-color); border-right: 6px solid var(--primary-color);
+            transition: transform var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            overflow: hidden; /* Ensure border radius applies correctly */
+        }
+        .exam-card:hover { transform: translateY(-4px); box-shadow: 0 8px 16px var(--shadow-color); }
+        .exam-detail {
+            display: grid; grid-template-columns: auto 1fr; /* Label | Value */
+            align-items: baseline; gap: 0.5rem 1rem; /* Row gap | Column gap */
+            margin-bottom: 0.8rem; font-size: 0.95rem;
+        }
+         .exam-detail:last-child { margin-bottom: 0; } /* Remove margin from last detail */
+        .exam-detail-label { color: var(--text-muted); font-weight: 500; }
+        .exam-detail-value { color: var(--text-color); font-weight: 400; }
+        .exam-course .exam-detail-value { font-weight: 700; font-size: 1.1em; color: var(--header-color); }
+        .exam-date .exam-detail-value { font-size: 0.9em; }
+        .exam-countdown .exam-detail-value { font-weight: 700; color: var(--secondary-color); min-height: 1.6em; }
+        .status-inprogress { color: var(--inprogress-color) !important; }
+        .status-finished { color: var(--finished-color) !important; font-style: italic; }
+
+        /* --- Message Styling --- */
+        #noExamsMessage {
+            text-align: center; font-size: 1.05rem; color: var(--text-muted);
+            margin-top: 2rem; padding: 2rem 1rem; background-color: var(--card-bg);
+            border-radius: var(--border-radius-md); display: none;
+            border: 1px dashed var(--border-color);
+        }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 480px) {
+            .exam-detail { grid-template-columns: 1fr; /* Stack label and value on small screens */ gap: 0.2rem; }
+            .exam-detail-label::after { content: ':'; margin-right: 0.3rem; } /* Add colon visually */
+             h1 { font-size: 1.6rem; } h2 { font-size: 1.1rem; margin-bottom: 2rem; }
+             .container { padding: 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>جامعة القصيم - كلية الهندسة</h1>
+            <h2>جدول الاختبارات النهائية - الفصل الدراسي 462</h2>
+        </header>
+
+        <main>
+            <section class="selection-area" aria-label="اختيار المستوى والقسم">
+                <div class="selector-group">
+                    <label for="levelSelect">اختر المستوى الدراسي:</label>
+                    <div class="custom-select-wrapper">
+                        <select id="levelSelect">
+                            <option value="">-- اختر المستوى --</option>
+                            <option value="1">المستوى الأول</option>
+                            <option value="2">المستوى الثاني</option>
+                            <option value="3">المستوى الثالث</option>
+                            <option value="4">المستوى الرابع</option>
+                            <option value="5">المستوى الخامس</option>
+                            <option value="6">المستوى السادس</option>
+                            <option value="7">المستوى السابع</option>
+                            <option value="8">المستوى الثامن</option>
+                            <option value="9">المستوى التاسع</option>
+                            <option value="10">المستوى العاشر</option>
+                            <option value="college_elective">اختياري كلية</option>
+                            <option value="ce_elective">اختياري قسم (مدني)</option>
+                            <option value="ee_epe_elective">اختياري (كهرباء - EPE)</option>
+                            <option value="ee_ece_elective">اختياري (كهرباء - ECE)</option>
+                            <option value="me_elective">اختياري قسم (ميكانيكا)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="departmentSelectorContainer">
+                     <h3 id="departmentPrompt">اختر القسم للمستوى المحدد:</h3>
+                     <div class="department-buttons">
+                         <button class="department-button" data-department="CE">الهندسة المدنية</button>
+                         <button class="department-button" data-department="EE">الهندسة الكهربائية</button>
+                         <button class="department-button" data-department="ME">الهندسة الميكانيكية</button>
+                     </div>
+                </div>
+            </section>
+
+            <section id="scheduleDisplayArea" aria-live="polite">
+                 <div id="scheduleContainer">
+                     <!-- Exam cards will be injected here -->
+                 </div>
+                 <p id="noExamsMessage" role="status">الرجاء اختيار المستوى لعرض جدول الاختبارات.</p>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const levelSelect = document.getElementById('levelSelect');
+        const scheduleContainer = document.getElementById('scheduleContainer');
+        const noExamsMessage = document.getElementById('noExamsMessage');
+        const departmentSelectorContainer = document.getElementById('departmentSelectorContainer');
+        const departmentPrompt = document.getElementById('departmentPrompt');
+        const departmentButtons = document.querySelectorAll('.department-button');
+        const scheduleDisplayArea = document.getElementById('scheduleDisplayArea'); // Container for schedule and message
+
+        // --- State ---
+        let countdownInterval = null;
+        let currentSelectedLevel = null;
+
+        // --- Exam Data (Ensure this is complete and accurate) ---
+        const examData = [
+             // --- Common Levels 1-3 ---
+            { level: 1, course: "ENG0011", date: "2025-05-20", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 1, course: "PHYS110", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 1, course: "CSC105", date: "2025-05-22", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 1, course: "STAT100", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 2, course: "ENG0012", date: "2025-05-20", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 2, course: "ESP102", date: "2025-05-29", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 2, course: "PHYS115", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 2, course: "CSC111", date: "2025-05-22", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 2, course: "MATH105", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 3, course: "GE104 (G1-G4)", date: "2025-05-27", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 3, course: "GE104 (G5-G8)", date: "2025-05-28", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 3, course: "PHYS131", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 3, course: "CHEM111", date: "2025-05-20", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 3, course: "MATH106", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "Common" },
+             // --- Common Courses (Levels 4+) ---
+            { level: 4, course: "GE105", date: "2025-05-20", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 4, course: "MATH107", date: "2025-05-22", startTime: "13:00", endTime: "16:00", department: "Common" },
+            { level: 4, course: "MATH203", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 5, course: "CSC209", date: "2025-05-22", startTime: "13:00", endTime: "16:00", department: "Common" },
+            { level: 5, course: "MATH208", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 6, course: "STAT328", date: "2025-05-27", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 6, course: "STAT328", date: "2025-05-27", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 6, course: "STAT328", date: "2025-05-28", startTime: "09:00", endTime: "12:00", department: "EE" },
+            { level: 9, course: "ECON401", date: "2025-05-22", startTime: "09:00", endTime: "12:00", department: "Common" }, { level: 10, course: "ECON401", date: "2025-05-22", startTime: "09:00", endTime: "12:00", department: "Common" },
+            { level: 9, course: "MGMT402", date: "2025-05-25", startTime: "13:00", endTime: "16:00", department: "Common" }, { level: 10, course: "MGMT402", date: "2025-05-25", startTime: "13:00", endTime: "16:00", department: "Common" },
+             // --- Civil Engineering Specific (CE) ---
+            { level: 4, course: "GE201", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 4, course: "GEO285", date: "2025-05-28", startTime: "09:00", endTime: "12:00", department: "CE" },
+            { level: 5, course: "GE202", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 5, course: "CE202", date: "2025-05-28", startTime: "09:00", endTime: "12:00", department: "CE" },
+            { level: 6, course: "CE205", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 6, course: "CE206", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 6, course: "CE212", date: "2025-05-29", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 6, course: "CE230", date: "2025-05-20", startTime: "09:00", endTime: "12:00", department: "CE" },
+            { level: 7, course: "Arab103", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 7, course: "CE306", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 7, course: "CE307", date: "2025-05-28", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 7, course: "CE330", date: "2025-05-27", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 7, course: "CE343", date: "2025-05-20", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 7, course: "CE353", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 7, course: "ME327", date: "2025-05-22", startTime: "09:00", endTime: "12:00", department: "CE" },
+            { level: 8, course: "CE318", date: "2025-05-22", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 8, course: "CE370", date: "2025-05-27", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 8, course: "CE375", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "CE" },
+            { level: 9, course: "CE331", date: "2025-05-26", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 9, course: "CE447", date: "2025-05-20", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 9, course: "CE363", date: "2025-05-28", startTime: "09:00", endTime: "12:00", department: "CE" },
+            { level: 10, course: "CE320", date: "2025-05-27", startTime: "13:00", endTime: "16:00", department: "CE" },
+            // --- Electrical Engineering Specific (EE) ---
+            { level: 4, course: "EE201", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "EE" }, { level: 4, course: "EE203", date: "2025-05-27", startTime: "09:00", endTime: "12:00", department: "EE" }, { level: 4, course: "GE210", date: "2025-05-29", startTime: "09:00", endTime: "12:00", department: "EE" },
+            { level: 5, course: "EE202", date: "2025-05-25", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 5, course: "EE208", date: "2025-05-20", startTime: "13:00", endTime: "16:00", department: "EE" },
+            { level: 6, course: "EE312", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "EE" }, { level: 6, course: "EE300", date: "2025-05-22", startTime: "09:00", endTime: "12:00", department: "EE" }, { level: 6, course: "EE301", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "EE" },
+            { level: 7, course: "EE340", date: "2025-05-27", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 7, course: "EE351", date: "2025-05-22", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 7, course: "EE330 (EPE)", date: "2025-05-18", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 7, course: "ME322", date: "2025-05-29", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 7, course: "CEN354 (ECE)", date: "2025-05-27", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 7, course: "EE320 (ECE)", date: "2025-05-29", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 7, course: "EE317 (ECE)", date: "2025-05-25", startTime: "13:00", endTime: "16:00", department: "EE" },
+            { level: 8, course: "EE331 (EPE)", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "EE" }, { level: 8, course: "EE354 (EPE)", date: "2025-05-20", startTime: "09:00", endTime: "12:00", department: "EE" }, { level: 8, course: "EE343", date: "2025-05-28", startTime: "09:00", endTime: "12:00", department: "EE" }, { level: 8, course: "EE405 (ECE)", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "EE" }, { level: 8, course: "EE322 (ECE)", date: "2025-05-29", startTime: "09:00", endTime: "12:00", department: "EE" }, { level: 8, course: "EE354 (ECE)", date: "2025-05-20", startTime: "09:00", endTime: "12:00", department: "EE" },
+            { level: 9, course: "EE432", date: "2025-05-25", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 9, course: "EE447 (EPE)", date: "2025-05-28", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 9, course: "EE483 (EPE)", date: "2025-05-28", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 9, course: "EE448", date: "2025-05-28", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 9, course: "EE423 (ECE)", date: "2025-05-26", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 9, course: "EE429 (ECE)", date: "2025-05-28", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 9, course: "EE417 (ECE)", date: "2025-05-28", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 9, course: "EE419", date: "2025-05-28", startTime: "13:00", endTime: "16:00", department: "EE" },
+            { level: 10, course: "EE482", date: "2025-05-22", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 10, course: "EE446 (EPE)", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "EE" }, { level: 10, course: "EE436 (EPE)", date: "2025-05-29", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 10, course: "EE443", date: "2025-05-29", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 10, course: "EE420 (ECE)", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "EE" }, { level: 10, course: "EE463", date: "2025-05-20", startTime: "09:00", endTime: "12:00", department: "EE" }, { level: 10, course: "EE418 (ECE)", date: "2025-05-27", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 10, course: "EE427", date: "2025-05-29", startTime: "13:00", endTime: "16:00", department: "EE" },
+             // --- Mechanical Engineering Specific (ME) ---
+            { level: 4, course: "GE201", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 4, course: "EE318", date: "2025-05-29", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 4, course: "ME241-3227", date: "2025-05-26", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 4, course: "ME241-3231", date: "2025-05-27", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 4, course: "ME241-3229", date: "2025-05-28", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 4, course: "ME241-3225", date: "2025-05-26", startTime: "13:00", endTime: "16:00", department: "ME" }, { level: 4, course: "ME241-3235", date: "2025-05-27", startTime: "13:00", endTime: "16:00", department: "ME" }, { level: 4, course: "ME241-3233", date: "2025-05-28", startTime: "13:00", endTime: "16:00", department: "ME" },
+            { level: 5, course: "GE202", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 5, course: "ME251", date: "2025-05-20", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 5, course: "EE339", date: "2025-05-29", startTime: "13:00", endTime: "16:00", department: "ME" },
+            { level: 6, course: "ME350", date: "2025-05-21", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 6, course: "ME360", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 6, course: "ME371", date: "2025-05-18", startTime: "13:00", endTime: "16:00", department: "ME" },
+            { level: 7, course: "ME335", date: "2025-05-22", startTime: "13:00", endTime: "16:00", department: "ME" }, { level: 7, course: "ME372", date: "2025-05-18", startTime: "13:00", endTime: "16:00", department: "ME" }, { level: 7, course: "ME385", date: "2025-05-27", startTime: "13:00", endTime: "16:00", department: "ME" },
+            { level: 8, course: "ME340", date: "2025-05-21", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 8, course: "ME344", date: "2025-05-29", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 8, course: "ME395", date: "2025-05-27", startTime: "13:00", endTime: "16:00", department: "ME" },
+            { level: 9, course: "ME465", date: "2025-05-19", startTime: "13:00", endTime: "16:00", department: "ME" }, { level: 9, course: "ME441", date: "2025-05-21", startTime: "09:00", endTime: "12:00", department: "ME" },
+            { level: 10, course: "ME495", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "ME" },
+             // --- Electives ---
+            { level: 'college_elective', course: "MATH328", date: "2025-05-20", startTime: "13:00", endTime: "16:00", department: "Elective" }, { level: 'college_elective', course: "MGMT411", date: "2025-05-20", startTime: "13:00", endTime: "16:00", department: "Elective" }, { level: 'college_elective', course: "GE412", date: "2025-05-25", startTime: "09:00", endTime: "12:00", department: "Elective" }, { level: 'college_elective', course: "MATH244", date: "2025-05-21", startTime: "09:00", endTime: "12:00", department: "Elective" }, { level: 'college_elective', course: "MATH254", date: "2025-05-21", startTime: "09:00", endTime: "12:00", department: "Elective" },
+            { level: 'ce_elective', course: "CE448", date: "2025-05-18", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 'ce_elective', course: "CE453", date: "2025-05-19", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 'ce_elective', course: "CE474", date: "2025-05-20", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 'ce_elective', course: "CE403", date: "2025-05-28", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 'ce_elective', course: "CE459", date: "2025-05-28", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 'ce_elective', course: "CE469", date: "2025-05-29", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 'ce_elective', course: "CE317", date: "2025-05-21", startTime: "09:00", endTime: "12:00", department: "CE" }, { level: 'ce_elective', course: "CE490", date: "2025-05-21", startTime: "09:00", endTime: "12:00", department: "CE" },
+            { level: 'ee_epe_elective', course: "EE436", date: "2025-05-29", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 'ee_epe_elective', course: "EE443", date: "2025-05-29", startTime: "13:00", endTime: "16:00", department: "EE" },
+            { level: 'ee_ece_elective', course: "EE418", date: "2025-05-27", startTime: "13:00", endTime: "16:00", department: "EE" }, { level: 'ee_ece_elective', course: "EE427", date: "2025-05-29", startTime: "13:00", endTime: "16:00", department: "EE" },
+            { level: 'me_elective', course: "ME453", date: "2025-05-29", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 'me_elective', course: "ME474", date: "2025-05-27", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 'me_elective', course: "ME490", date: "2025-05-18", startTime: "13:00", endTime: "16:00", department: "ME" }, { level: 'me_elective', course: "ME431", date: "2025-05-26", startTime: "09:00", endTime: "12:00", department: "ME" }, { level: 'me_elective', course: "ME463", date: "2025-05-28", startTime: "13:00", endTime: "16:00", department: "ME" }, { level: 'me_elective', course: "ME425", date: "2025-05-26", startTime: "13:00", endTime: "16:00", department: "ME" },
+        ];
+
+        // --- Helper Functions ---
+        /** Gets Arabic day name from JS day index (0=Sun) */
+        function getArabicDayName(dayIndex) { const days = ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"]; return days[dayIndex]; }
+        /** Formats Date object to HH:MM AM/PM */
+        function formatTime(date) { if (!(date instanceof Date) || isNaN(date)) { return "---"; } return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }); }
+        /** Pluralizes Arabic nouns */
+        function pluralizeAr(count, singular, dual, plural3_10, plural11plus) { const absCount = Math.abs(count); if (absCount === 1) return singular; if (absCount === 2) return dual; if (absCount >= 3 && absCount <= 10) return plural3_10; return plural11plus; }
+        /** Formats remaining milliseconds into Arabic string */
+        function formatRemainingTime(ms) {
+             if (ms <= 0) return { status: 'finished', text: '' };
+            const totalSeconds = Math.floor(ms / 1000); const totalMinutes = Math.floor(totalSeconds / 60);
+            const totalHours = Math.floor(totalMinutes / 60); const days = Math.floor(totalHours / 24);
+            const seconds = totalSeconds % 60; const minutes = totalMinutes % 60; const hours = totalHours % 24;
+            let parts = [];
+            if (days > 0) { parts.push(`${days} ${pluralizeAr(days, 'يوم', 'يومان', 'أيام', 'يوم')}`); }
+            if (hours > 0) { parts.push(`${hours} ${pluralizeAr(hours, 'ساعة', 'ساعتان', 'ساعات', 'ساعة')}`); }
+            if (minutes > 0) { parts.push(`${minutes} ${pluralizeAr(minutes, 'دقيقة', 'دقيقتان', 'دقائق', 'دقيقة')}`); }
+            if (days === 0 && hours === 0 && minutes === 0 && seconds > 0) { parts.push(`${seconds} ${pluralizeAr(seconds, 'ثانية', 'ثانيتان', 'ثواني', 'ثانية')}`); }
+            const remainingText = parts.join(' و ');
+            if (remainingText === '' && ms > 0) { return { status: 'pending', text: 'لحظات قليلة' }; }
+            return { status: 'pending', text: remainingText };
+        }
+        /** Creates a detail row element */
+        function createDetailElement(label, value, detailClass = '', valueClass = '') {
+            const detailDiv = document.createElement('div');
+            detailDiv.className = `exam-detail ${detailClass}`;
+            const labelSpan = document.createElement('span');
+            labelSpan.className = 'exam-detail-label';
+            labelSpan.textContent = label; // Colon added via CSS for better alignment control
+            detailDiv.appendChild(labelSpan);
+            const valueSpan = document.createElement('span');
+            valueSpan.className = `exam-detail-value ${valueClass}`;
+            valueSpan.textContent = value ?? '---'; // Use nullish coalescing
+            detailDiv.appendChild(valueSpan);
+            return detailDiv;
+        }
+
+        // --- Core Logic ---
+        /** Clears interval and hides/resets UI elements */
+        function resetUI() {
+            if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+            scheduleContainer.innerHTML = ''; // Clear cards
+            scheduleContainer.classList.remove('loaded'); // Reset animation state
+            departmentSelectorContainer.classList.remove('visible'); // Hide department chooser
+            noExamsMessage.style.display = 'none'; // Hide message
+        }
+
+        /** Displays the exam schedule based on level and optional department */
+        function displaySchedule(selectedLevel, selectedDepartment = null) {
+            console.log(`Displaying schedule - Level: ${selectedLevel}, Dept: ${selectedDepartment}`); // Debug
+            resetUI(); // Clear previous state first
+
+            const levelValue = /^\d+$/.test(selectedLevel) ? parseInt(selectedLevel, 10) : selectedLevel;
+
+            // Filter exams based on refined logic
+            const filteredExams = examData.filter(exam => {
+                // Match level first (works for numbers and strings like 'college_elective')
+                if (exam.level !== levelValue) return false;
+
+                // Now apply department/common logic based on level type and whether a department was selected
+                if (selectedDepartment) { // A specific department was chosen (only applicable for levels >= 4)
+                    // Handle the special case for STAT328 at level 6
+                    if (exam.course === 'STAT328' && exam.level === 6) {
+                        return exam.department === selectedDepartment;
+                    }
+                    // For other courses in levels 4-10, show if it's specific to the department OR common
+                    return exam.department === selectedDepartment || exam.department === 'Common';
+                } else { // No department selected OR level doesn't require it
+                    const levelNum = parseInt(selectedLevel, 10); // Try parsing level to number
+
+                    if (!isNaN(levelNum) && levelNum >= 1 && levelNum <= 3) { // Levels 1-3: Show only 'Common' courses
+                        return exam.department === 'Common';
+                    } else if (selectedLevel === 'college_elective') { // College Elective: Show 'Elective' department courses
+                        return exam.department === 'Elective';
+                    } else if (selectedLevel === 'ce_elective') { // CE Elective: Show 'CE' department courses
+                        return exam.department === 'CE';
+                    } else if (selectedLevel === 'ee_epe_elective' || selectedLevel === 'ee_ece_elective') { // EE Electives: Show 'EE' department courses
+                        return exam.department === 'EE';
+                    } else if (selectedLevel === 'me_elective') { // ME Elective: Show 'ME' department courses
+                        return exam.department === 'ME';
+                    }
+                    // Fallback for any case not explicitly handled (e.g., L4-10 selected but department *not* chosen yet)
+                    // This case shouldn't technically be reached if UI flow is correct, but safe to return false.
+                    return false;
+                }
+            });
+            console.log('Filtered Exams:', filteredExams); // Debug
+
+            // Display message or render cards
+            if (filteredExams.length === 0) {
+                 let levelText = levelSelect.options[levelSelect.selectedIndex]?.text || selectedLevel;
+                 // Find the button text matching the selected department code
+                 let deptText = '';
+                 if (selectedDepartment) {
+                    const deptButton = document.querySelector(`.department-button[data-department="${selectedDepartment}"]`);
+                    if (deptButton) {
+                        deptText = ` - ${deptButton.textContent}`;
+                    }
+                 }
+                 noExamsMessage.textContent = `لا توجد اختبارات مجدولة لـ ${levelText}${deptText}.`;
+                 noExamsMessage.style.display = 'block';
+                 requestAnimationFrame(() => scheduleContainer.classList.add('loaded')); // Animate message display
+                return;
+            }
+
+            // Sort exams by date/time
+            try {
+                filteredExams.sort((a, b) => {
+                    const dateA = new Date(`${a.date}T${a.startTime}`); const dateB = new Date(`${b.date}T${b.startTime}`);
+                    if (isNaN(dateA) || isNaN(dateB)) return 0; // Don't crash on invalid dates
+                    return dateA - dateB;
+                });
+            } catch (e) { console.error("Error sorting exams:", e); }
+
+            const now = new Date();
+            const fragment = document.createDocumentFragment(); // Use fragment for performance
+            const examsToUpdate = []; // Array to hold info for live updates
+
+            // Create and add cards to fragment
+            filteredExams.forEach((exam, index) => {
+                const card = document.createElement('article'); // More semantic than div
+                card.className = 'exam-card';
+                let examStartDateTime, examEndDateTime;
+                try {
+                    examStartDateTime = new Date(`${exam.date}T${exam.startTime}`);
+                    examEndDateTime = new Date(`${exam.date}T${exam.endTime}`);
+                    if (isNaN(examStartDateTime) || isNaN(examEndDateTime)) throw new Error(`Invalid date/time format for course ${exam.course}`);
+                } catch (e) {
+                     console.error(e.message, `Data:`, exam);
+                     card.innerHTML = `<p style="color: #ff8a8a;">خطأ في تحميل بيانات الاختبار: ${exam.course}<br>يرجى مراجعة مسؤول النظام.</p>`;
+                     fragment.appendChild(card);
+                     return; // Skip this card
+                 }
+
+                const countdownId = `countdown-${selectedLevel}-${selectedDepartment || 'all'}-${index}`; // More specific ID
+
+                card.appendChild(createDetailElement('المقرر', exam.course, 'exam-course'));
+                // Format Hijri Date - Use specific locale and calendar
+                const hijriDateStr = examStartDateTime.toLocaleDateString('ar-SA-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' });
+                // Format Gregorian Date - Use 'en-CA' for YYYY-MM-DD consistently
+                const gregorianDateStr = `(${examStartDateTime.toLocaleDateString('en-CA')})`;
+                card.appendChild(createDetailElement('التاريخ', `${hijriDateStr} ${gregorianDateStr}`, 'exam-date'));
+                card.appendChild(createDetailElement('اليوم', getArabicDayName(examStartDateTime.getDay()), 'exam-day'));
+                card.appendChild(createDetailElement('الوقت', `${formatTime(examStartDateTime)} - ${formatTime(examEndDateTime)}`, 'exam-time'));
+                const countdownDetail = createDetailElement('الحالة', '', 'exam-countdown');
+                // Ensure the value span inside countdownDetail gets the ID
+                const countdownValueSpan = countdownDetail.querySelector('.exam-detail-value');
+                if (countdownValueSpan) {
+                    countdownValueSpan.id = countdownId;
+                } else {
+                    console.error("Could not find value span for countdown element");
+                }
+                card.appendChild(countdownDetail);
+
+                fragment.appendChild(card);
+                examsToUpdate.push({ id: countdownId, start: examStartDateTime, end: examEndDateTime });
+
+                // Initial update immediately to avoid flicker
+                if (countdownValueSpan) {
+                    updateSingleCountdown(countdownValueSpan, examStartDateTime, examEndDateTime, now);
+                }
+            });
+
+            // Append all cards at once and start animation/interval
+            scheduleContainer.appendChild(fragment);
+            requestAnimationFrame(() => scheduleContainer.classList.add('loaded'));
+            startCountdownInterval(examsToUpdate); // Start live updates
+        }
+
+        /** Updates a single countdown element's text and style */
+        function updateSingleCountdown(valueSpan, examStart, examEnd, now) {
+            // Robustness checks
+            if (!valueSpan || !(examStart instanceof Date) || isNaN(examStart) || !(examEnd instanceof Date) || isNaN(examEnd)) {
+                if(valueSpan) valueSpan.textContent = "خطأ في الوقت";
+                return;
+            }
+            const timeUntilStart = examStart.getTime() - now.getTime();
+            const timeUntilEnd = examEnd.getTime() - now.getTime();
+            valueSpan.classList.remove('status-inprogress', 'status-finished');
+            valueSpan.style.color = ''; // Reset color first
+
+            if (timeUntilStart > 0) { // Exam hasn't started yet
+                const remaining = formatRemainingTime(timeUntilStart);
+                valueSpan.textContent = remaining.text ? "يبدأ خلال: " + remaining.text : "لحظات قليلة"; // Show something even if formatRemainingTime returns empty for very short durations
+                valueSpan.style.color = 'var(--secondary-color)'; // Use secondary color for upcoming
+            } else if (timeUntilEnd > 0) { // Exam is currently in progress
+                valueSpan.textContent = "الاختبار جاري الآن";
+                valueSpan.classList.add('status-inprogress'); // Apply yellow color
+            } else { // Exam has finished
+                valueSpan.textContent = "الاختبار انتهى";
+                valueSpan.classList.add('status-finished'); // Apply grey color and italic
+            }
+        }
+
+        /** Starts the interval timer to update countdowns */
+        function startCountdownInterval(examsToUpdate) {
+            if (countdownInterval) clearInterval(countdownInterval); // Clear existing interval first
+
+            countdownInterval = setInterval(() => {
+                const currentTime = new Date();
+                let allFinished = true; // Assume all are finished until proven otherwise
+                if (examsToUpdate.length === 0) { // Optimization: If no exams, clear interval
+                     clearInterval(countdownInterval);
+                     countdownInterval = null;
+                     console.log("No exams to update, stopping interval.");
+                     return;
+                }
+
+                examsToUpdate.forEach(examInfo => {
+                    const valueSpan = document.getElementById(examInfo.id);
+                    if (valueSpan) {
+                        updateSingleCountdown(valueSpan, examInfo.start, examInfo.end, currentTime);
+                        // Check if this exam is still pending or in progress
+                        if (examInfo.end.getTime() >= currentTime.getTime()) {
+                            allFinished = false; // At least one exam is not finished
+                        }
+                    } else {
+                        // Element might have been removed if user changed level quickly
+                        // No need to log warning frequently in production
+                        // console.warn("Could not find element for update:", examInfo.id);
+                    }
+                });
+                // If all exams in the *current view* have finished, stop the timer
+                if (allFinished && countdownInterval) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                     console.log("All exams finished for current view, stopping interval.");
+                }
+            }, 1000); // Update every second
+        }
+
+        // --- Event Listeners ---
+        levelSelect.addEventListener('change', (event) => {
+            const selectedLevel = event.target.value;
+            currentSelectedLevel = selectedLevel; // Store the currently selected level
+            resetUI(); // Clear everything first
+
+            if (!selectedLevel) { // No level selected (e.g., "-- اختر المستوى --")
+                noExamsMessage.textContent = 'الرجاء اختيار المستوى لعرض جدول الاختبارات.';
+                noExamsMessage.style.display = 'block';
+                requestAnimationFrame(() => scheduleContainer.classList.add('loaded')); // Animate message in
+                return;
+            }
+
+            const levelNum = parseInt(selectedLevel, 10);
+            // Check if level is between 4 and 10 (inclusive)
+            if (!isNaN(levelNum) && levelNum >= 4 && levelNum <= 10) { // Needs department selection
+                departmentPrompt.textContent = `اختر القسم للمستوى ${levelSelect.options[levelSelect.selectedIndex].text}:`;
+                departmentSelectorContainer.classList.add('visible'); // Show department buttons
+                 // Do *not* call displaySchedule here yet
+            } else { // L1-3 or Elective - display directly
+                displaySchedule(selectedLevel, null); // Pass null for department
+            }
+        });
+
+        departmentButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const selectedDepartment = button.getAttribute('data-department');
+                if (currentSelectedLevel && selectedDepartment) { // Ensure a level was previously selected
+                    // departmentSelectorContainer.classList.remove('visible'); // Optionally hide selector immediately after click
+                    displaySchedule(currentSelectedLevel, selectedDepartment); // Show schedule for the stored level and chosen department
+                } else {
+                    console.warn("Department button clicked, but no level was selected.");
+                    // Optionally provide feedback to the user, though the UI flow should prevent this state.
+                }
+            });
+        });
+
+        // --- Initial State ---
+        function initializeApp() {
+             console.log("App Initializing");
+             // Set the initial message when the page loads
+             noExamsMessage.textContent = 'الرجاء اختيار المستوى لعرض جدول الاختبارات.';
+             noExamsMessage.style.display = 'block';
+             // Trigger the animation for the initial message display
+             requestAnimationFrame(() => scheduleContainer.classList.add('loaded'));
+        }
+
+        // Wait for the DOM to be fully loaded before running initialization logic
+        document.addEventListener('DOMContentLoaded', initializeApp);
+
+    </script>
+</body>
+</html>
